@@ -1,6 +1,7 @@
 package fwk.rivetest;
 
 import org.openqa.selenium.By;
+import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.firefox.FirefoxDriver;
@@ -8,7 +9,11 @@ import org.openqa.selenium.ie.InternetExplorerDriver;
 import org.openqa.selenium.opera.OperaDriver;
 import org.openqa.selenium.safari.SafariDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by stacybustos on 12/26/14.
@@ -23,8 +28,7 @@ public class Tester {
     }
 
     //To perform prior the test case
-    public static void setUp(NavigatorDriver navigatorDriver, String url)
-    {
+    public static void setUp(NavigatorDriver navigatorDriver, String url) {
         switch (navigatorDriver){
             case Firefox:
                 //Set Up the driver with Firefox
@@ -59,8 +63,7 @@ public class Tester {
     }
 
     //To perform at the end of the test case
-    public static void tearDown()
-    {
+    public static void tearDown() {
         //Quit all the instances of the WebDriver (browser)
         driver.quit();
     }
@@ -70,14 +73,14 @@ public class Tester {
     }
 
     //To click a web element
-    public static void click(String locator){
+    public static void click(String locator) {
         WebDriverWait wait = new WebDriverWait(driver, 15);
         wait.until(ExpectedConditions.elementToBeClickable(By.id(locator)));
         driver.findElement(By.id(locator)).click();
     }
 
     //To click a web element by its href link
-    public static void clickHref(String locator){
+    public static void clickHref(String locator) {
         WebDriverWait wait = new WebDriverWait(driver, 15);
         wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector("a[href*=" + "'" + locator + "'" + "]")));
         driver.findElement(By.cssSelector("a[href*=" + "'" + locator + "'" + "]")).click();
@@ -113,7 +116,7 @@ public class Tester {
     }
 
     //go to latest opened window
-    public void switchNewWindow(){
+    public void switchNewWindow() {
         for(String winHandle : driver.getWindowHandles()){
             driver.switchTo().window(winHandle);
         }
@@ -124,8 +127,7 @@ public class Tester {
         try {
             driver.findElement(By.id(locator));
             return true;
-        } catch (Exception e) {
-            System.out.println("Locator-> "+locator+" not found");
+        } catch (NoSuchElementException e) {
             return false;
         }
     }
@@ -137,8 +139,7 @@ public class Tester {
             wait.until(ExpectedConditions. visibilityOfElementLocated(By.id(locator)));
             driver.findElement(By.id(locator)).isDisplayed();
             return true;
-        } catch (Exception e) {
-            System.out.println("Locator-> "+locator+" not found");
+        } catch (NoSuchElementException e) {
             return false;
         }
     }
@@ -148,7 +149,7 @@ public class Tester {
         try {
             driver.findElement(By.id(locator)).isSelected();
             return true;
-        } catch (Exception e) {
+        } catch (NoSuchElementException e) {
             return false;
         }
     }
@@ -158,26 +159,26 @@ public class Tester {
         try {
             driver.findElement(By.id(locator)).isEnabled();
             return true;
-        } catch (Exception e) {
+        } catch (NoSuchElementException e) {
             return false;
         }
     }
 
     //To get current URL
     public static String getUrl(String locator) {
-           String url=  driver.getCurrentUrl();
+        String url=  driver.getCurrentUrl();
         return url;
     }
 
     //To get current value of an element
     public static String getValue(String locator) {
-            String value=  driver.findElement(By.id(locator)).getAttribute("value");
+        String value =  driver.findElement(By.id(locator)).getAttribute("value");
         return value;
     }
 
     //To get current value of an element
     public static String getElementText(String locator) {
-        String value=  driver.findElement(By.id(locator)).getText();
+        String value = driver.findElement(By.id(locator)).getText();
         return value;
     }
 
@@ -185,11 +186,46 @@ public class Tester {
         try {
             driver.findElement(By.cssSelector("BODY")).getText().matches("^[\\s\\S]*"+text+"[\\s\\S]*$");
             return true;
-        }catch (Exception e) {
+        }catch (NoSuchElementException e) {
             return false;
         }
     }
 
+    //Clicks on a dropdown element, selecting it by visible text, index or value.
+    public static void selectDropDownElement(String locator, String element, DropdownMethodEnum method){
+        Select dropdown = new Select(driver.findElement(By.id(locator)));
+        switch(method){
+            case TEXT:
+                //Search by visible text
+                dropdown.selectByVisibleText(element);
+                break;
+            case INDEX:
+                //Search by Index
+                dropdown.selectByIndex(Integer.parseInt(element));
+                break;
+            case VALUE:
+                //Search by value.
+                dropdown.selectByValue(element);
+                break;
+        }
+    }
 
+    public static void waitForElement(String locator){
+        WebDriverWait wait = new WebDriverWait(driver, 15);
+        wait.until(ExpectedConditions. visibilityOfElementLocated(By.id(locator)));
+    }
 
+    public static List getDropDownElements(String locator) {
+        Select dropdown = new Select(driver.findElement(By.id(locator)));
+        List<String> valueList = new ArrayList<>();
+
+        dropdown.getAllSelectedOptions().forEach(element ->
+        {
+            String attribute = element.getAttribute("value");
+            valueList.add(attribute);
+            System.out.println(attribute);
+        });
+
+        return valueList;
+    }
 }
